@@ -1,43 +1,122 @@
 import Groq from "groq-sdk";
 import prisma from "../db/db.config.js";
-const groq = new Groq();
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-export const postPrompt = async(req,res)=> {
-
+export const postPrompt = async (req, res) => {
   const { userPrompt } = req.body;
 
-  // Set headers for Server-Sent Events (SSE)
+  // Check if user is authenticated
+  const userId = req.user?.id;  // Make sure you have the userId from auth middleware
+
+  if (!userId) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
+
+  const isPostman = req.headers['user-agent']?.includes('Postman');
+
+  // ✅ Handle Postman separately
+  if (isPostman) {
+    try {
+      let fullResponse = '';
+
+      // Store conversation with userId
+      const conversation = await prisma.conversation.create({
+        data: {
+          userId,                   // ✅ Associate conversation with the user
+          prompt: userPrompt,
+          response: ''  // Initialize with empty response
+        }
+      });
+
+      const conversationId = conversation.id;  // Capture the ID
+
+      // Stream the response
+      const stream = await getGroqChatStream(userPrompt);
+
+      for await (const chunk of stream) {
+        const content = chunk.choices[0]?.delta?.content || '';
+
+        if (content.length > 0) {
+          fullResponse += content;  // Accumulate the response
+
+          // Update the DB with full response
+          await prisma.conversation.update({
+            where: { id: conversationId },
+            data: { response: fullResponse }
+          });
+        }
+      }
+
+      // Send the full response at once for Postman
+      res.status(200).json({
+        conversationId,
+        prompt: userPrompt,
+        response: fullResponse
+      });
+
+    } catch (error) {
+      console.error('Error in postPrompt:', error.message);
+      res.status(500).json({ error: 'Error in postPrompt' });
+    }
+    return;
+  }
+
+  // ✅ Streaming for browsers
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
-  let fullResponse = '';
-
   try {
-    const stream = await getGroqChatStream(userPrompt);
-  for await (const chunk of stream) {
-    const content = chunk.choices[0]?.delta?.content || '';
-      fullResponse += content;
-
-      // Send the chunk to the client as SSE data
-      res.write(`data: ${JSON.stringify({ content })}\n\n`);
-
-    const response =  await prisma.conversation.create({
-      data:{
+    // ✅ Create conversation with userId
+    const conversation = await prisma.conversation.create({
+      data: {
+        userId,  // Associate with the user
         prompt: userPrompt,
-        response: fullResponse,
+        response: ''
       }
-    })
+    });
 
-    if(response.length>0){
-    return  res.status(200).json(response);
+    const conversationId = conversation.id;  // Capture the ID
+    let fullResponse = '';
+
+    const stream = await getGroqChatStream(userPrompt);
+
+    // Stream chunks in real-time
+    for await (const chunk of stream) {
+      const content = chunk.choices[0]?.delta?.content || '';
+
+      if (content.length > 0) {
+        fullResponse += content;
+
+        // ✅ Stream chunk to the client
+        res.write(`data: ${JSON.stringify({ content })}\n\n`);
+
+        // ✅ Store the chunk in the database immediately
+        await prisma.conversation.update({
+          where: { id: conversationId },
+          data: { response: fullResponse }
+        });
+      }
     }
-    
-  }
+
+    // ✅ Finalize the full response in the database
+    await prisma.conversation.update({
+      where: { id: conversationId },
+      data: { response: fullResponse }
+    });
+
+    // ✅ Graceful termination
+    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
+    res.end();
+
   } catch (error) {
-    return res.status(500).json("Error in postprompt",error.messages);
+    console.error('Error in postPrompt:', error.message);
+    res.status(500).json({ error: 'Error in postPrompt' });
   }
-}
+};
+
+
+
 
 export async function getGroqChatStream(userPrompt) {
   return groq.chat.completions.create({

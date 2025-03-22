@@ -3,6 +3,8 @@ import cookieParser from "cookie-parser";
 import env from "dotenv";
 import bodyParser from "body-parser";
 import cors from "cors";
+import userRoute from "./routes/user.route.js";
+import genSuggestRoute from "./routes/genSuggest.route.js";
 
 env.config();
 
@@ -18,5 +20,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+//routes
+app.use("/api/user", userRoute);
+app.use("/api/genSuggest", genSuggestRoute);
 
 app.listen(PORT, () => { console.log(`Server is running on port:${PORT}`) });
