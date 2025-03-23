@@ -29,20 +29,31 @@ export const postPrompt = async (req, res) => {
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
       fullResponse += content;
-
-      // ✅ Store response incrementally in DB
-      await prisma.conversation.update({
-        where: { id: conversationId },
-        data: { response: fullResponse }
-      });
     }
 
     // ✅ Send the final response
-    res.status(200).json({
-      conversationId,
-      prompt: userPrompt,
-      response: fullResponse
-    });
+    // res.status(200).json({
+    //   conversationId,
+    //   prompt: userPrompt,
+    //   response: fullResponse
+    // });
+
+   const createRes = await prisma.conversation.update({
+      where:{
+        id: conversationId
+      },
+      data:{
+        response: fullResponse
+      }
+    })
+
+    
+
+    if(createRes){
+      return res.status(200).json(createRes);
+    }
+
+    return 
 
   } catch (error) {
     console.error('Error in postPrompt:', error.message);

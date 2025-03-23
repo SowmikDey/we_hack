@@ -38,56 +38,83 @@ export default function Generate() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
   const { displayedText, isTyping } = useTypingAnimation(currentResponse, 50);
+  const [fetchchat, setFetchChat] = useState([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [isFetchingLatest, setIsFetchingLatest] = useState(false);
   const messagesEndRef = useRef(null);
 
+  // ✅ Fetch chat history
+  const fetchChatHistory = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/api/genSuggest/fetchdata`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true
+        }
+      );
 
+      if (response.status === 200) {
+        setFetchChat(response.data);
+      }
+    } catch (error) {
+      console.error("Error fetching chat history:", error);
+      setError("Failed to load chat history.");
+    } finally {
+      setIsLoadingHistory(false);
+      setIsFetchingLatest(false);
+    }
+  };
 
-  // Scroll to bottom when messages update
+  useEffect(() => {
+    fetchChatHistory();
+  }, []);
+
+  // ✅ Scroll to bottom when messages update
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, displayedText]);
+  }, [messages, displayedText, fetchchat]);
 
   const handleLogout = () => {
-    navigate('/login');
+    navigate('/');
   };
 
   const handleChat = async () => {
     if (!userPrompt.trim()) return;
-  
+
     const newUserMessage = {
       role: 'user',
       content: userPrompt
     };
-  
+
     setMessages((prev) => [...prev, newUserMessage]);
     setUserPrompt('');
     setIsGenerating(true);
     setCurrentResponse('');
     setError('');
-  
+
     try {
       const token = localStorage.getItem("token");
-  
-      // ✅ Use POST request with body
+
       const response = await axios.post(
-        `${import.meta.env.VITE_BASE_URL}/api/genSuggest/postPrompt`,  // Correct route for generation
-        { userPrompt },   // Send the prompt in the request body
+        `${import.meta.env.VITE_BASE_URL}/api/genSuggest/postPrompt`,
+        { userPrompt },
         {
           headers: {
-            Authorization: `Bearer ${token}`, 
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
           },
-          withCredentials: true  
+          withCredentials: true
         }
       );
-  
+
       if (response.status === 200) {
-        const backendResponse = response.data.response;  // Extract response from backend
+        const backendResponse = response.data.response;
         setCurrentResponse(backendResponse);
-  
-        // ✅ Display the response after typing
+
         const checkTypingComplete = setInterval(() => {
           if (!isTyping) {
             setMessages((prev) => [
@@ -97,6 +124,10 @@ export default function Generate() {
             setCurrentResponse('');
             setIsGenerating(false);
             clearInterval(checkTypingComplete);
+
+            // ✅ Fetch latest chat history immediately after posting
+            setIsFetchingLatest(true);
+            fetchChatHistory();
           }
         }, 100);
       } else {
@@ -108,7 +139,6 @@ export default function Generate() {
       setIsGenerating(false);
     }
   };
-  
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -122,9 +152,6 @@ export default function Generate() {
       <header className="border-b border-gray-700 bg-gray-900">
         <div className="max-w-5xl mx-auto flex justify-between items-center px-4 h-16">
           <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <svg className="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
             Legal Chatbot
           </h1>
           <button
@@ -138,8 +165,17 @@ export default function Generate() {
 
       {/* Chat Container */}
       <div className="flex-1 overflow-hidden">
-        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: 'calc(100vh - 160px)' }}>
-          {messages.length === 0 ? (
+        <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ maxHeight: "calc(100vh - 160px)" }}>
+
+          {/* ✅ Loading spinner for fetching latest chats */}
+          {isFetchingLatest && (
+            <div className="text-center text-gray-400">Updating chat history...</div>
+          )}
+
+          {/* ✅ No Messages Fallback */}
+          {isLoadingHistory ? (
+            <div className="text-center text-gray-400">Loading chat history...</div>
+          ) : fetchchat.length === 0 ? (
             <div className="flex justify-center items-center h-full text-center">
               <div>
                 <h2 className="text-lg font-semibold text-white">How can I help you today?</h2>
@@ -147,48 +183,26 @@ export default function Generate() {
               </div>
             </div>
           ) : (
-            messages.map((message, idx) => (
-              <div key={idx} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                <div
-                  className={`max-w-[80%] rounded-lg p-4 ${
-                    message.role === 'user' ? 'bg-blue-500 text-white' : 'bg-gray-700 text-gray-100'
-                  }`}
-                >
-                  <p className="whitespace-pre-wrap">{message.content}</p>
+            fetchchat.map((chat, idx) => (
+              <div key={idx} className="space-y-2">
+                {/* User message */}
+                <div className="flex justify-end">
+                  <div className="bg-blue-500 text-white max-w-[70%] rounded-lg p-4">
+                    <p>{chat.prompt}</p>
+                  </div>
+                </div>
+
+                {/* AI message */}
+                <div className="flex justify-start">
+                  <div className="bg-gray-700 text-gray-100 max-w-[70%] rounded-lg p-4">
+                    <p>{chat.response}</p>
+                  </div>
                 </div>
               </div>
             ))
           )}
 
-          {/* Typing Animation */}
-          {currentResponse && (
-            <div className="flex justify-start">
-              <div className="bg-gray-700 text-gray-100 max-w-[80%] rounded-lg p-4">
-                <p className="whitespace-pre-wrap">
-                  {displayedText}
-                  {isTyping && <span className="ml-1 animate-pulse">|</span>}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Loading animation */}
-          {isGenerating && !currentResponse && (
-            <div className="flex justify-start">
-              <div className="bg-gray-700 rounded-lg p-4 max-w-[80%]">
-                <div className="flex space-x-2">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.4s' }}></div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {error && (
-            <div className="text-red-500 text-sm mt-2">{error}</div>
-          )}
-
+          {/* Scroll anchor */}
           <div ref={messagesEndRef} />
         </div>
       </div>
