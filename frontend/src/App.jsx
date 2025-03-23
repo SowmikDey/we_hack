@@ -16,9 +16,8 @@ export default function App() {
         <Route
           path="/generate"
           element={
-            <ProtectedRoute>
+            
               <Generate />
-            </ProtectedRoute>
           }
         />
         {/* Catch all route - redirect to landing page */}

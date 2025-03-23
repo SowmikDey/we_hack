@@ -4,7 +4,7 @@ import { postPrompt,fetchData } from '../prompts/fetch.js';
 
 const router = express.Router();
 
-router.get('/postprompt',protectUser,postPrompt);
+router.post('/postprompt',protectUser,postPrompt);
 router.get('/fetchdata',protectUser,fetchData);
 
 export default router;

@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
 
 export default function Signup() {
   const navigate = useNavigate();
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
-    username: '',
+    name: '',
     email: '',
     password: ''
   });
@@ -23,9 +25,13 @@ export default function Signup() {
     try {
       // TODO: Implement actual signup logic here
       console.log('Signup data:', formData);
-      navigate('/generate');
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, formData);
+      if(response.status === 201){
+        navigate('/generate');
+      }
+      
     } catch (err) {
-      setError('Error creating account. Please try again.');
+      setError('Error creating account. Please try again.',err.mesage);
     }
   };
 
@@ -50,8 +56,8 @@ export default function Signup() {
                 <div className="relative">
                   <p className="bg-white px-2 -mt-3 ml-2 font-medium text-gray-600 absolute">Username</p>
                   <input 
-                    name="username"
-                    value={formData.username}
+                    name="name"
+                    value={formData.name}
                     onChange={handleChange}
                     placeholder="John" 
                     type="text" 

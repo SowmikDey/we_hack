@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -16,12 +17,19 @@ export default function Login() {
 
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // await new Promise(resolve => setTimeout(resolve, 1000));
+
       
       console.log('Login data:', formData);
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login`, formData);
+      if(response.status === 200){
+        const data = response.data;
+        localStorage.setItem("token",data.token);
+        console.log("Token from storage:", localStorage.getItem("token"));
       navigate('/generate');
+      }
     } catch (err) {
-      setError('Invalid credentials. Please try again.');
+      setError('Invalid credentials. Please try again.',err.message);
     } finally {
       setIsLoading(false);
     }

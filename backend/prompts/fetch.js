@@ -3,117 +3,53 @@ import prisma from "../db/db.config.js";
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 export const postPrompt = async (req, res) => {
-  const { userPrompt } = req.body;
-
-  // Check if user is authenticated
-  const userId = req.user?.id;  // Make sure you have the userId from auth middleware
-
-  if (!userId) {
-    return res.status(401).json({ error: "User not authenticated" });
-  }
-
-  const isPostman = req.headers['user-agent']?.includes('Postman');
-
-  // ✅ Handle Postman separately
-  if (isPostman) {
-    try {
-      let fullResponse = '';
-
-      // Store conversation with userId
-      const conversation = await prisma.conversation.create({
-        data: {
-          userId,                   // ✅ Associate conversation with the user
-          prompt: userPrompt,
-          response: ''  // Initialize with empty response
-        }
-      });
-
-      const conversationId = conversation.id;  // Capture the ID
-
-      // Stream the response
-      const stream = await getGroqChatStream(userPrompt);
-
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content || '';
-
-        if (content.length > 0) {
-          fullResponse += content;  // Accumulate the response
-
-          // Update the DB with full response
-          await prisma.conversation.update({
-            where: { id: conversationId },
-            data: { response: fullResponse }
-          });
-        }
-      }
-
-      // Send the full response at once for Postman
-      res.status(200).json({
-        conversationId,
-        prompt: userPrompt,
-        response: fullResponse
-      });
-
-    } catch (error) {
-      console.error('Error in postPrompt:', error.message);
-      res.status(500).json({ error: 'Error in postPrompt' });
-    }
-    return;
-  }
-
-  // ✅ Streaming for browsers
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
-
   try {
-    // ✅ Create conversation with userId
+    const { userPrompt } = req.body;
+
+    // ✅ Ensure user authentication
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    let fullResponse = '';
+
     const conversation = await prisma.conversation.create({
       data: {
-        userId,  // Associate with the user
+        userId,
         prompt: userPrompt,
-        response: ''
+        response: ''  // Initialize with empty response
       }
     });
 
-    const conversationId = conversation.id;  // Capture the ID
-    let fullResponse = '';
+    const conversationId = conversation.id;
 
     const stream = await getGroqChatStream(userPrompt);
 
-    // Stream chunks in real-time
     for await (const chunk of stream) {
       const content = chunk.choices[0]?.delta?.content || '';
+      fullResponse += content;
 
-      if (content.length > 0) {
-        fullResponse += content;
-
-        // ✅ Stream chunk to the client
-        res.write(`data: ${JSON.stringify({ content })}\n\n`);
-
-        // ✅ Store the chunk in the database immediately
-        await prisma.conversation.update({
-          where: { id: conversationId },
-          data: { response: fullResponse }
-        });
-      }
+      // ✅ Store response incrementally in DB
+      await prisma.conversation.update({
+        where: { id: conversationId },
+        data: { response: fullResponse }
+      });
     }
 
-    // ✅ Finalize the full response in the database
-    await prisma.conversation.update({
-      where: { id: conversationId },
-      data: { response: fullResponse }
+    // ✅ Send the final response
+    res.status(200).json({
+      conversationId,
+      prompt: userPrompt,
+      response: fullResponse
     });
-
-    // ✅ Graceful termination
-    res.write(`data: ${JSON.stringify({ done: true })}\n\n`);
-    res.end();
 
   } catch (error) {
     console.error('Error in postPrompt:', error.message);
     res.status(500).json({ error: 'Error in postPrompt' });
   }
 };
+
 
 
 
