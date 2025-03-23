@@ -27,7 +27,7 @@ export default function Signup() {
       console.log('Signup data:', formData);
       const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/signup`, formData);
       if(response.status === 201){
-        navigate('/generate');
+        navigate('/login');
       }
       
     } catch (err) {
