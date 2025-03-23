@@ -191,11 +191,11 @@ function Landing() {
                     <div>
                         <h2 className="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Follow us</h2>
                         <ul className="text-gray-600 dark:text-gray-400">
-                            <li className="mb-4">
-                                <Link href="#" className="hover:underline ">X</Link>
+                        <li className="mb-4">
+                                <Link to="https://x.com/SowmikD22343" className="hover:underline ">X</Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:underline">Instagram</Link>
+                                <Link to="https://www.linkedin.com/in/sowmik-dey-8390a827b/" className="hover:underline">LinkedIn</Link>
                             </li>
                         </ul>
                     </div>
@@ -213,11 +213,11 @@ function Landing() {
                     <div>
                         <h2 className="mb-6 text-sm font-semibold text-gray-900 uppercase dark:text-white">Contacts</h2>
                         <ul className="text-gray-600 dark:text-gray-400">
-                            <li className="mb-4">
-                                <Link href="#" className="hover:underline">Phone</Link>
+                        <li className="mb-4">
+                                <Link href="#" className="hover:underline">+919830869972</Link>
                             </li>
                             <li>
-                                <Link href="#" className="hover:underline">E-Mail</Link>
+                                <Link href="#" className="hover:underline">sowmikdey23@gmail.com</Link>
                             </li>
                         </ul>
                     </div>
