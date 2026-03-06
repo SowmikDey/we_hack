@@ -1,181 +1,240 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import React, { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import axios from 'axios'
 
 export default function Login() {
-  const navigate = useNavigate();
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate()
+  const [error, setError] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
+    e.preventDefault()
+    setIsLoading(true)
     const formData = {
       email: e.target.email.value,
       password: e.target.password.value,
-    };
+    }
 
     try {
-      // Simulate API call
-      // await new Promise(resolve => setTimeout(resolve, 1000));
-
-      
-      console.log('Login data:', formData);
-      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login`, formData);
-      if(response.status === 200){
-        const data = response.data;
-        localStorage.setItem("token",data.token);
-        console.log("Token from storage:", localStorage.getItem("token"));
-      navigate('/generate');
+      const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/api/user/login`, formData)
+      if (response.status === 200) {
+        const data = response.data
+        localStorage.setItem('token', data.token)
+        navigate('/generate')
       }
     } catch (err) {
-      setError('Invalid credentials. Please try again.',err.message);
+      setError('Invalid credentials. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
-    <div className="fixed inset-0 bg-[#0f172a]">
-      <div className="flex w-full h-full">
-        {/* Left side - Image and Overlay */}
-        <div className="hidden lg:block lg:w-1/2 relative overflow-hidden group">
-          <div 
-            className="absolute inset-0 w-full h-full transform transition-all duration-1000 ease-in-out group-hover:scale-110 group-hover:rotate-1"
-            style={{ 
-              backgroundImage: 'url(https://images.unsplash.com/photo-1616763355603-9755a640a287?ixlib=rb-1.2.1&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1470&q=80)',
-              backgroundSize: 'cover',
-              backgroundPosition: 'center'
-            }}
-          />
-          <div className="absolute inset-0 bg-[#0f172a]/90 z-10 transition-all duration-1000 ease-in-out group-hover:bg-[#0f172a]/80">
-            <div className="flex h-full items-center px-16">
-              <div className="relative transition-transform duration-700 ease-out transform group-hover:translate-y-[-8px]">
-                <h2 className="text-4xl font-bold text-white mb-4 transition-all duration-700 group-hover:text-blue-400">Welcome Back</h2>
-                <p className="max-w-md text-gray-300 text-base leading-relaxed transition-all duration-700 group-hover:text-white">
-                  Experience the power of AI-driven content generation. Create, innovate, and transform your ideas into reality.
-                </p>
-                <div className="mt-6 flex gap-6">
-                  <div className="flex items-center gap-2 transition-all duration-500 hover:transform hover:translate-x-2">
-                    <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300 transition-colors duration-500 hover:text-blue-400">Real-time Generation</span>
-                  </div>
-                  <div className="flex items-center gap-2 transition-all duration-500 hover:transform hover:translate-x-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300 transition-colors duration-500 hover:text-green-400">Smart AI</span>
-                  </div>
-                  <div className="flex items-center gap-2 transition-all duration-500 hover:transform hover:translate-x-2">
-                    <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
-                    <span className="text-gray-300 transition-colors duration-500 hover:text-purple-400">Secure Platform</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <div className="fixed inset-0 bg-[#080808] text-white overflow-hidden">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+        * { font-family: 'DM Sans', sans-serif; }
+        .serif { font-family: 'Playfair Display', serif; }
+        .gold-text { background: linear-gradient(135deg, #d4a843 0%, #f5d78e 50%, #b8860b 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0px 1000px #111 inset !important; -webkit-text-fill-color: #fff !important; }
+        input:-webkit-autofill:focus { -webkit-box-shadow: 0 0 0px 1000px #111 inset !important; }
+        .grain::before {
+          content: '';
+          position: fixed;
+          inset: 0;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+          pointer-events: none;
+          z-index: 999;
+          opacity: 0.3;
+        }
+      `}</style>
+      <div className="grain" />
 
-        {/* Right side - Login Form */}
-        <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
-          <div className="w-full max-w-md space-y-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-white">Sign In</h2>
-              <p className="mt-2 text-gray-400">Welcome back! Please enter your details.</p>
+      {/* Background grid */}
+      <div className="absolute inset-0" style={{
+        backgroundImage: 'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
+        backgroundSize: '80px 80px'
+      }} />
+
+      {/* Glow */}
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.1, 0.2, 0.1] }}
+        transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(212,168,67,0.12) 0%, transparent 70%)' }}
+      />
+
+      <div className="relative z-10 flex w-full h-full">
+
+        {/* ─── LEFT PANEL ─── */}
+        <motion.div
+          initial={{ opacity: 0, x: -60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="hidden lg:flex lg:w-1/2 flex-col justify-between p-16 border-r border-white/10"
+        >
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-8 h-8 border border-amber-400/60 flex items-center justify-center">
+              <span className="text-amber-400 text-xs">⚖</span>
             </div>
+            <span className="text-white font-semibold tracking-widest text-sm uppercase">KnowYourRights</span>
+          </Link>
+
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 1, delay: 0.4 }}
+            >
+              <span className="text-amber-400 text-xs tracking-[0.4em] uppercase block mb-6">Welcome Back</span>
+              <h2 className="serif text-5xl xl:text-6xl font-bold text-white leading-tight mb-6">
+                Your Rights,<br /><em className="gold-text not-italic">Your Power.</em>
+              </h2>
+              <p className="text-gray-400 text-base leading-relaxed max-w-sm">
+                Experience the power of AI-driven legal guidance. Sign in to continue your journey towards legal literacy.
+              </p>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.8 }}
+              className="mt-12 space-y-4"
+            >
+              {[
+                { dot: 'bg-amber-400', label: 'Real-time AI Guidance' },
+                { dot: 'bg-emerald-400', label: 'Smart Legal Analysis' },
+                { dot: 'bg-blue-400', label: 'Secure & Private Platform' },
+              ].map((item, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.9 + i * 0.15 }}
+                  className="flex items-center gap-3"
+                >
+                  <span className={`w-1.5 h-1.5 ${item.dot} rounded-full animate-pulse`} />
+                  <span className="text-gray-400 text-sm">{item.label}</span>
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+          <div className="text-gray-600 text-xs tracking-widest">© 2025 KnowYourRights</div>
+        </motion.div>
+
+        {/* ─── RIGHT PANEL ─── */}
+        <motion.div
+          initial={{ opacity: 0, x: 60 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 1, ease: [0.25, 0.46, 0.45, 0.94] }}
+          className="w-full lg:w-1/2 flex items-center justify-center p-8"
+        >
+          <div className="w-full max-w-md">
+            {/* Mobile logo */}
+            <div className="lg:hidden mb-10">
+              <Link to="/" className="flex items-center gap-3">
+                <div className="w-8 h-8 border border-amber-400/60 flex items-center justify-center">
+                  <span className="text-amber-400 text-xs">⚖</span>
+                </div>
+                <span className="text-white font-semibold tracking-widest text-sm uppercase">KnowYourRights</span>
+              </Link>
+            </div>
+
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.3 }}
+            >
+              <span className="text-amber-400 text-xs tracking-[0.4em] uppercase block mb-3">Access Your Account</span>
+              <h1 className="serif text-4xl font-bold text-white mb-2">Sign In</h1>
+              <p className="text-gray-500 text-sm mb-10">Welcome back. Enter your credentials to continue.</p>
+            </motion.div>
 
             {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-lg">
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mb-6 p-4 border border-red-500/30 bg-red-500/10 text-red-400 text-sm"
+              >
+                {error}
+              </motion.div>
             )}
 
             <form onSubmit={handleLogin} className="space-y-6">
-              <div>
-                <label htmlFor="email" className="block mb-2 text-sm font-medium text-gray-300">Email Address</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  id="email" 
-                  placeholder="example@example.com" 
-                  required 
-                  className="block w-full px-4 py-3 bg-[#1e293b] border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-300 placeholder-gray-500" 
-                />
-              </div>
+              {[
+                { id: 'email', label: 'Email Address', type: 'email', placeholder: 'you@example.com' },
+                { id: 'password', label: 'Password', type: 'password', placeholder: '••••••••' },
+              ].map((field, i) => (
+                <motion.div
+                  key={field.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 + i * 0.1 }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <label htmlFor={field.id} className="text-gray-400 text-xs tracking-widest uppercase">{field.label}</label>
+                    {field.id === 'password' && (
+                      <a href="#" className="text-amber-400/70 hover:text-amber-400 text-xs transition-colors duration-300">Forgot password?</a>
+                    )}
+                  </div>
+                  <input
+                    type={field.type}
+                    name={field.id}
+                    id={field.id}
+                    placeholder={field.placeholder}
+                    required
+                    className="w-full px-4 py-3.5 bg-transparent border border-white/10 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-amber-400/60 transition-colors duration-300"
+                    style={{ background: 'rgba(255,255,255,0.03)' }}
+                  />
+                </motion.div>
+              ))}
 
-              <div>
-                <div className="flex justify-between mb-2">
-                  <label htmlFor="password" className="text-sm font-medium text-gray-300">Password</label>
-                  <a href="#" className="text-sm text-blue-400 hover:text-blue-300">Forgot password?</a>
-                </div>
-                <input 
-                  type="password" 
-                  name="password" 
-                  id="password" 
-                  placeholder="Your Password" 
-                  required 
-                  className="block w-full px-4 py-3 bg-[#1e293b] border border-gray-700 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-gray-300 placeholder-gray-500" 
-                />
-              </div>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                className="flex items-center gap-3"
+              >
+                <input type="checkbox" id="remember" className="w-4 h-4 accent-amber-400" />
+                <label htmlFor="remember" className="text-gray-500 text-sm">Remember me</label>
+              </motion.div>
 
-              <div className="flex items-center">
-                <input 
-                  type="checkbox" 
-                  id="remember" 
-                  className="w-4 h-4 text-blue-500 bg-[#1e293b] border-gray-700 rounded focus:ring-blue-500" 
-                />
-                <label htmlFor="remember" className="ml-2 text-sm text-gray-300">Remember me</label>
-              </div>
-
-              <button 
+              <motion.button
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-[#0f172a] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-4 bg-amber-400 text-black font-bold text-sm tracking-widest uppercase hover:bg-amber-300 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
               >
-                {isLoading ? (
-                  <div className="flex items-center justify-center">
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                    Signing in...
-                  </div>
-                ) : (
-                  'Sign in'
-                )}
-              </button>
+                <span className="relative z-10">
+                  {isLoading ? (
+                    <span className="flex items-center justify-center gap-2">
+                      <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      Signing In…
+                    </span>
+                  ) : 'Sign In →'}
+                </span>
+              </motion.button>
             </form>
 
-            <div>
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-700"></div>
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-[#0f172a] text-gray-400">Or continue with</span>
-                </div>
-              </div>
-
-              <div className="mt-6 grid grid-cols-2 gap-3">
-                <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:bg-[#1e293b] transition-colors">
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
-                  </svg>
-                  Google
-                </button>
-                <button className="w-full flex items-center justify-center px-4 py-2 border border-gray-700 rounded-lg text-gray-300 hover:bg-[#1e293b] transition-colors">
-                  <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z"/>
-                  </svg>
-                  Facebook
-                </button>
-              </div>
-            </div>
-
-            <p className="text-center text-sm text-gray-400">
-              Don't have an account yet?{' '}
-              <Link to="/signup" className="text-blue-400 hover:text-blue-300">
-                Sign up
-              </Link>
-            </p>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 1.1 }}
+              className="text-center text-gray-600 text-sm mt-8"
+            >
+              Don't have an account?{' '}
+              <Link to="/signup" className="text-amber-400 hover:text-amber-300 transition-colors duration-300">Create one</Link>
+            </motion.p>
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
-  );
+  )
 }
