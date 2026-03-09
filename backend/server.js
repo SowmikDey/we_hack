@@ -20,6 +20,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+//health-check
+app.get("/health",(req,res)=>{
+  res.send("Backend is Healthy");
+});
+
 //routes
 app.use("/api/user", userRoute);
 app.use("/api/genSuggest", genSuggestRoute);
